@@ -1,11 +1,14 @@
-import { GetServerSideProps } from "next";
-import { checkAuth } from "@/utils/auth";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import axios from "axios";
 import nookies from "nookies";
+import { checkAuth } from "@/utils/auth";
+import { GetServerSideProps } from "next";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 interface User {
   id: number;
   username: string;
@@ -14,6 +17,55 @@ interface User {
 }
 
 const UsersPage: React.FC<{ users: [User] }> = ({ users }) => {
+  const [datausers, setUsers] = useState<User[]>(users);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const cookies = nookies.get(null);
+        const response = await axios.get(`${apiUrl}/profile/me`, {
+          headers: { Authorization: `Bearer ${cookies.authToken}` },
+        });
+
+        if (!response.data.email) {
+          router.push("/login"); // Redirect jika tidak ada email di response
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+        router.push("/login");
+      }
+    };
+
+    fetchProfile();
+  }, [router]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/users`);
+        setUsers(response.data); // Mengatur users
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleDelete = async (userId: number) => {
+    if (confirm("Are you sure you want to delete this user?")) {
+      try {
+        await axios.delete(`${apiUrl}/users/${userId}`);
+        setUsers(users.filter((user) => user.id !== userId));
+        alert("User deleted successfully.");
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        alert("Failed to delete user.");
+      }
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -38,10 +90,13 @@ const UsersPage: React.FC<{ users: [User] }> = ({ users }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user: User) => (
+              {datausers.map((user) => (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.username}
@@ -51,6 +106,20 @@ const UsersPage: React.FC<{ users: [User] }> = ({ users }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.role}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <Link
+                      href={`/admin/user/edit/${user.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="ml-4 text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -64,9 +133,9 @@ const UsersPage: React.FC<{ users: [User] }> = ({ users }) => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const profile = await checkAuth(ctx);
+  const auth = await checkAuth(ctx);
 
-  if (!profile) {
+  if (!auth) {
     return {
       redirect: {
         destination: "/login",

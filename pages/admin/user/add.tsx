@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { GetServerSideProps } from "next";
 import { checkAuth } from "@/utils/auth";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 const schema = yup.object().shape({
   username: yup.string().required("Username is required"),
   password: yup
@@ -38,7 +39,7 @@ const AddUserPage: React.FC = () => {
   const router = useRouter();
 
   const onSubmit = async (data: FormData) => {
-    const response = await fetch("http://localhost:3001/users", {
+    const response = await fetch(apiUrl + "/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -108,9 +109,9 @@ const AddUserPage: React.FC = () => {
 };
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const profile = await checkAuth(ctx);
+  const auth = await checkAuth(ctx);
 
-  if (!profile) {
+  if (!auth) {
     return {
       redirect: {
         destination: "/login",

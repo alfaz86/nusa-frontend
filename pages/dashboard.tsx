@@ -1,15 +1,20 @@
 import { GetServerSideProps } from "next";
 import { parseCookies } from "nookies";
 import { Dashboard as AdminDashboard } from "@/components/admin/Dashboard";
+import { Dashboard as OwnerStoreDashboard } from "@/components/owner-store/Dashboard";
 
 const DashboardPage: React.FC<{ role: string }> = ({ role }) => {
   switch (role) {
     case "admin":
       return <AdminDashboard />;
-    case "seller":
-      return <>seller</>;
-    case "buyer":
-      return <>buyer</>;
+    case "developer":
+      return <AdminDashboard />;
+    case "owner_store":
+      return <OwnerStoreDashboard />;
+    case "admin_store":
+      return <OwnerStoreDashboard />;
+    case "user":
+      return <>user</>;
     default:
       return <div>Unauthorized</div>;
   }

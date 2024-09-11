@@ -4,10 +4,14 @@ import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 const Profile = () => {
   const [profile, setProfile] = useState<{
     username?: string;
     email?: string;
+    haveStore?: boolean;
+    role?: string;
     error?: string;
   } | null>(null);
   const router = useRouter();
@@ -15,7 +19,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const cookies = nookies.get(null);
-      const response = await fetch("http://localhost:3001/profile/me", {
+      const response = await fetch(apiUrl + "/profile/me", {
         headers: { Authorization: `Bearer ${cookies.authToken}` },
       });
 
@@ -31,7 +35,7 @@ const Profile = () => {
   }, [router]);
 
   const handleLogout = async () => {
-    await fetch("http://localhost:3001/auth/logout", {
+    await fetch(apiUrl + "/auth/logout", {
       method: "DELETE",
       headers: { Authorization: `Bearer ${nookies.get(null).authToken}` },
     });
@@ -41,6 +45,10 @@ const Profile = () => {
 
   const handleDashboard = () => {
     router.push("/dashboard");
+  };
+
+  const handleCreateStore = () => {
+    router.push("/store/create");
   };
 
   if (!profile) return <div>Loading...</div>;
@@ -57,12 +65,28 @@ const Profile = () => {
             <div>
               <p>Username: {profile.username}</p>
               <p>Email: {profile.email}</p>
-              <button
-                onClick={handleDashboard}
-                className="mt-4 bg-gray-500  text-white py-2 px-4 rounded hover:bg-gray-600 mr-3"
-              >
-                Dashboard
-              </button>
+              {/* check the profile.haveStore, and profile.role
+              if role is admin or developer then show the dashboard button
+              if true then show the dashboard button
+              if false then show the create store button
+              */}
+              {profile.haveStore ||
+              profile.role === "admin" ||
+              profile.role === "developer" ? (
+                <button
+                  onClick={handleDashboard}
+                  className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 mr-3"
+                >
+                  Dashboard
+                </button>
+              ) : (
+                <button
+                  onClick={handleCreateStore}
+                  className="mt-4 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mr-3"
+                >
+                  Create Store
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
