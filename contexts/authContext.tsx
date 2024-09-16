@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const cookies = nookies.get();
     const authToken = cookies.authToken;
     if (authToken) {
-      console.log(authToken);
       setIsAuthenticated(true);
     }
   }, []);

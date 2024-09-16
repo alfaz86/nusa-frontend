@@ -12,8 +12,7 @@ const fetchAuth = async (email: string, password: string) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  const data = await response.json();
-  console.log(data);
+  const data = await response.text();
   return data;
 };
 
@@ -25,12 +24,9 @@ const Login: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const data = await fetchAuth(email, password);
-    if (data.token && data.role) {
-      nookies.set(null, "authToken", data.token, {
-        maxAge: 1 * 24 * 60 * 60, // Cookie expires in 1 days
-        path: "/",
-      });
-      nookies.set(null, "userRole", data.role, {
+
+    if (data) {
+      nookies.set(null, "authToken", data, {
         maxAge: 1 * 24 * 60 * 60, // Cookie expires in 1 days
         path: "/",
       });

@@ -12,10 +12,18 @@ export const Dashboard: React.FC = () => {
           <ul>
             <li>
               <Link
-                href="/owner-store/user"
+                href="/store/owner/user"
                 className="underline underline-offset-1 hover:text-blue-600"
               >
                 Manage Users
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/store/owner/product"
+                className="underline underline-offset-1 hover:text-blue-600"
+              >
+                Manage Products
               </Link>
             </li>
           </ul>

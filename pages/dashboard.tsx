@@ -2,6 +2,7 @@ import { GetServerSideProps } from "next";
 import { parseCookies } from "nookies";
 import { Dashboard as AdminDashboard } from "@/components/admin/Dashboard";
 import { Dashboard as OwnerStoreDashboard } from "@/components/owner-store/Dashboard";
+import { getRole } from "@/utils/getRole";
 
 const DashboardPage: React.FC<{ role: string }> = ({ role }) => {
   switch (role) {
@@ -9,9 +10,9 @@ const DashboardPage: React.FC<{ role: string }> = ({ role }) => {
       return <AdminDashboard />;
     case "developer":
       return <AdminDashboard />;
-    case "owner_store":
+    case "store_owner":
       return <OwnerStoreDashboard />;
-    case "admin_store":
+    case "store_admin":
       return <OwnerStoreDashboard />;
     case "user":
       return <>user</>;
@@ -22,7 +23,7 @@ const DashboardPage: React.FC<{ role: string }> = ({ role }) => {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const cookies = parseCookies(ctx);
-  const role = cookies.userRole || "guest";
+  const role = await getRole(ctx);
 
   if (!cookies.authToken) {
     return {
